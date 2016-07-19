@@ -63,7 +63,7 @@ namespace PokemonGo.RocketAPI.Console
 
                 await ExecuteCatchAllNearbyPokemons(client);
 
-                await Task.Delay(15000);
+                await Task.Delay(5000);
             }
         }
 
@@ -82,6 +82,7 @@ namespace PokemonGo.RocketAPI.Console
                 do
                 {
                     caughtPokemonResponse = await client.CatchPokemon(pokemon.EncounterId, pokemon.SpawnpointId, pokemon.Latitude, pokemon.Longitude);
+                    await Task.Delay(5000);
                 } 
                 while(caughtPokemonResponse.Payload[0].Status == 2);
 

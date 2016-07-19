@@ -18,6 +18,7 @@ namespace PokemonGo.RocketAPI
         public const string LongDurationToken = "fakeid";
         public const double DefaultLatitude = 10;
         public const double DefaultLongitude = 10;
+        public const double StepDistance = 0.000095;
 
     }
 }
