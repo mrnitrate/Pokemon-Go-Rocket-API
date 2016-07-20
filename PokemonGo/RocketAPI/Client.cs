@@ -211,7 +211,7 @@ namespace PokemonGo.RocketAPI
                         new KeyValuePair<string, string>("redirect_uri", "https://www.nianticlabs.com/pokemongo/error"),
                         new KeyValuePair<string, string>("client_secret",
                             "w8ScCUXJQc6kXKw8FiOhd8Fixzht18Dq3PEVkUCP5ZPxtgyWsbTvWHFLm2wNY0JR"),
-                        new KeyValuePair<string, string>("grant_type", "grant_type"),
+                        new KeyValuePair<string, string>("grant_type", "refresh_token"),
                         new KeyValuePair<string, string>("code", ticketId),
                     }));
 
@@ -291,7 +291,9 @@ namespace PokemonGo.RocketAPI
             var serverRequest = RequestBuilder.GetInitialRequest(_accessToken, _authType, _currentLat, _currentLng, 10,
                 RequestType.GET_PLAYER, RequestType.GET_HATCHED_OBJECTS, RequestType.GET_INVENTORY,
                 RequestType.CHECK_AWARDED_BADGES, RequestType.DOWNLOAD_SETTINGS);
+
             var serverResponse = await _httpClient.PostProto<Request, ProfileResponse>(Resources.RpcUrl, serverRequest);
+
             _apiUrl = serverResponse.ApiUrl;
             return serverResponse;
         }
