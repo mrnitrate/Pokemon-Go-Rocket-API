@@ -89,7 +89,7 @@ namespace PokemonGo.RocketAPI
                     Message = customRequest.ToByteString()
                 });
             var updateResponse =
-                await _httpClient.PostProto<Request, PlayerUpdateResponse>($"https://{_apiUrl}/rpc", updateRequest);
+                await _httpClient.PostProtoPayload<Request, PlayerUpdateResponse>($"https://{_apiUrl}/rpc", updateRequest);
 
             return updateResponse;
         }
@@ -102,7 +102,7 @@ namespace PokemonGo.RocketAPI
             {
                 while (_currentLat > lat)
                 {
-                    SetCoordinates(_currentLat -= Settings.StepDistance, _currentLng);
+                    SetCoordinates(_currentLat -= 0.000095, _currentLng);
                     updateResponse = await DoWalk();
                     await Task.Delay(100);
                 }
@@ -111,7 +111,7 @@ namespace PokemonGo.RocketAPI
             {
                 while (_currentLat < lat)
                 {
-                    SetCoordinates(_currentLat += Settings.StepDistance, _currentLng);
+                    SetCoordinates(_currentLat += 0.000095, _currentLng);
                     updateResponse = await DoWalk();
                     await Task.Delay(100);
                 }
@@ -121,7 +121,7 @@ namespace PokemonGo.RocketAPI
             {
                 while (_currentLng > lng)
                 {
-                    SetCoordinates(_currentLat, _currentLng -= Settings.StepDistance);
+                    SetCoordinates(_currentLat, _currentLng -= 0.000095);
                     updateResponse = await DoWalk();
                     await Task.Delay(100);
                 }
@@ -130,7 +130,7 @@ namespace PokemonGo.RocketAPI
             {
                 while (_currentLng < lng)
                 {
-                    SetCoordinates(_currentLat, _currentLng += Settings.StepDistance);
+                    SetCoordinates(_currentLat, _currentLng += 0.000095);
                     updateResponse = await DoWalk();
                     await Task.Delay(100);
                 }
