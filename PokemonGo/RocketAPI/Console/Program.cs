@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Net.Http;
 using System.Text;
@@ -19,25 +20,22 @@ namespace PokemonGo.RocketAPI.Console
             Task.Run(() => Execute());
              System.Console.ReadLine();
         }
-
+        
         static async void Execute()
         {
             var client = new Client(Settings.DefaultLatitude, Settings.DefaultLongitude);
 
-            if (Settings.UsePTC)
-            {
-                await client.LoginPtc(Settings.PtcUsername, Settings.PtcPassword);
-            }
-            else
-            {
-                await client.LoginGoogle(Settings.DeviceId, Settings.Email, Settings.LongDurationToken);
-            }
+            if (Settings.AuthType == AuthType.Ptc)
+                await client.DoPtcLogin(Settings.PtcUsername, Settings.PtcPassword);
+            else if (Settings.AuthType == AuthType.Google)
+                await client.DoGoogleLogin();
+            
             var serverResponse = await client.GetServer();
             var profile = await client.GetProfile();
             var settings = await client.GetSettings();
             var mapObjects = await client.GetMapObjects();
             var inventory = await client.GetInventory();
-            var pokemons = inventory.Payload[0].Bag.Items.Select(i => i.Item?.Pokemon).Where(p => p != null && p?.PokemonType != InventoryResponse.Types.PokemonProto.Types.PokemonIds.PokemonUnset);
+            var pokemons = inventory.Payload[0].Bag.Items.Select(i => i.Item?.Pokemon).Where(p => p != null && p?.PokemonType != InventoryResponse.Types.PokemonProto.Types.PokemonTypes.PokemonUnset);
 
 
             await ExecuteFarmingPokestopsAndPokemons(client);
@@ -59,11 +57,11 @@ namespace PokemonGo.RocketAPI.Console
                 var fortSearch = await client.SearchFort(pokeStop.FortId, pokeStop.Latitude, pokeStop.Longitude);
                 var bag = fortSearch.Payload[0];
 
-                System.Console.WriteLine($"Farmed XP: {bag.XpAwarded}, Gems: { bag.GemsAwarded}, Eggs: {bag.EggPokemon} Items: {GetFriendlyItemsString(bag.Items)}");
+                System.Console.WriteLine($"[{DateTime.Now.ToString("HH:mm:ss")}] Farmed XP: {bag.XpAwarded}, Gems: { bag.GemsAwarded}, Eggs: {bag.EggPokemon} Items: {GetFriendlyItemsString(bag.Items)}");
 
                 await ExecuteCatchAllNearbyPokemons(client);
 
-                await Task.Delay(5000);
+                await Task.Delay(15000);
             }
         }
 
@@ -81,19 +79,18 @@ namespace PokemonGo.RocketAPI.Console
                 CatchPokemonResponse caughtPokemonResponse;
                 do
                 {
-                    caughtPokemonResponse = await client.CatchPokemon(pokemon.EncounterId, pokemon.SpawnpointId, pokemon.Latitude, pokemon.Longitude);
-                    await Task.Delay(5000);
+                    caughtPokemonResponse = await client.CatchPokemon(pokemon.EncounterId, pokemon.SpawnpointId, pokemon.Latitude, pokemon.Longitude, Settings.UsedBall);
                 } 
                 while(caughtPokemonResponse.Payload[0].Status == 2);
 
-                System.Console.WriteLine(caughtPokemonResponse.Payload[0].Status == 1 ? $"We caught a {GetFriendlyPokemonName(pokemon.PokedexTypeId)}" : $"{GetFriendlyPokemonName(pokemon.PokedexTypeId)} got away..");
+                System.Console.WriteLine(caughtPokemonResponse.Payload[0].Status == 1 ? $"[{DateTime.Now.ToString("HH:mm:ss")}] We caught a {GetFriendlyPokemonName(pokemon.PokedexTypeId)}" : $"[{DateTime.Now.ToString("HH:mm:ss")}] {GetFriendlyPokemonName(pokemon.PokedexTypeId)} got away..");
                 await Task.Delay(5000);
             }
         }
 
-        private static string GetFriendlyPokemonName(MapObjectsResponse.Types.Payload.Types.PokemonIds id)
+        private static string GetFriendlyPokemonName(MapObjectsResponse.Types.Payload.Types.PokemonTypes id)
         {
-            var name = Enum.GetName(typeof (InventoryResponse.Types.PokemonProto.Types.PokemonIds), id);
+            var name = Enum.GetName(typeof (InventoryResponse.Types.PokemonProto.Types.PokemonTypes), id);
             return name?.Substring(name.IndexOf("Pokemon") + 7);
         }
 
