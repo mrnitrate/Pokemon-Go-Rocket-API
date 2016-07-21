@@ -16,12 +16,14 @@ namespace PokemonGo.RocketAPI.Logic
         private readonly Client _client;
         private readonly ISettings _clientSettings;
         private readonly Inventory _inventory;
+        private readonly Navigation _navigation;
 
         public Logic(ISettings clientSettings)
         {
             _clientSettings = clientSettings;
             _client = new Client(_clientSettings);
             _inventory = new Inventory(_client);
+            _navigation = new Navigation(_client);
         }
 
         public async void Execute()
@@ -70,17 +72,19 @@ namespace PokemonGo.RocketAPI.Logic
         {
             var mapObjects = await client.GetMapObjects();
 
-            var pokeStops = mapObjects.MapCells.SelectMany(i => i.Forts).Where(i => i.Type == FortType.Checkpoint && i.CooldownCompleteTimestampMs < DateTime.UtcNow.ToUnixTime());
+            var pokeStops = mapObjects.MapCells.SelectMany(i => i.Forts).Where(i => i.Type == FortType.Checkpoint && i.CooldownCompleteTimestampMs < DateTime.UtcNow.ToUnixTime()).OrderBy(i => LocationUtils.CalculateDistanceInMeters(new Navigation.Location(_client.CurrentLat, _client.CurrentLng), new Navigation.Location(i.Latitude, i.Longitude)));
 
             foreach (var pokeStop in pokeStops)
             {
-                var update = await client.UpdatePlayerLocation(pokeStop.Latitude, pokeStop.Longitude);
+                var update =
+                    await _navigation.HumanLikeWalking(new Navigation.Location(pokeStop.Latitude, pokeStop.Longitude), _clientSettings.WalkingSpeedInKilometerPerHour);
+
                 var fortInfo = await client.GetFort(pokeStop.Id, pokeStop.Latitude, pokeStop.Longitude);
                 var fortSearch = await client.SearchFort(pokeStop.Id, pokeStop.Latitude, pokeStop.Longitude);
 
                 System.Console.WriteLine($"[{DateTime.Now.ToString("HH:mm:ss")}] Farmed XP: {fortSearch.ExperienceAwarded}, Gems: { fortSearch.GemsAwarded}, Eggs: {fortSearch.PokemonDataEgg} Items: {StringUtils.GetSummedFriendlyNameOfItemAwardList(fortSearch.ItemsAwarded)}");
 
-                await Task.Delay(15000);
+                await Task.Delay(5000);
                 await ExecuteCatchAllNearbyPokemons(client);
             }
         }
@@ -89,11 +93,11 @@ namespace PokemonGo.RocketAPI.Logic
         {
             var mapObjects = await client.GetMapObjects();
 
-            var pokemons = mapObjects.MapCells.SelectMany(i => i.CatchablePokemons);
+            var pokemons = mapObjects.MapCells.SelectMany(i => i.CatchablePokemons).OrderBy(i => LocationUtils.CalculateDistanceInMeters(new Navigation.Location(_client.CurrentLat, _client.CurrentLng), new Navigation.Location(i.Latitude, i.Longitude)));
 
             foreach (var pokemon in pokemons)
             {
-                var update = await client.UpdatePlayerLocation(pokemon.Latitude, pokemon.Longitude);
+                var update = await _navigation.HumanLikeWalking(new Navigation.Location(pokemon.Latitude, pokemon.Longitude), _clientSettings.WalkingSpeedInKilometerPerHour);
                 var encounterPokemonResponse = await client.EncounterPokemon(pokemon.EncounterId, pokemon.SpawnpointId);
 
                 CatchPokemonResponse caughtPokemonResponse;

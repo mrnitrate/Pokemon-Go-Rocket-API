@@ -14,6 +14,7 @@ namespace PokemonGo.RocketAPI.Console
         public  string PtcPassword => GetSetting() != string.Empty? GetSetting() : "password";
         public double DefaultLatitude => GetSetting() != string.Empty ? double.Parse(GetSetting(), CultureInfo.InvariantCulture) : 52.379189; //Default Amsterdam Central Station
         public double DefaultLongitude => GetSetting() != string.Empty ? double.Parse(GetSetting(),CultureInfo.InvariantCulture) : 4.899431;//Default Amsterdam Central Station
+        public double WalkingSpeedInKilometerPerHour => GetSetting() != string.Empty ? double.Parse(GetSetting(), CultureInfo.InvariantCulture) : 5.0;
         public  string GoogleRefreshToken
         {
             get { return GetSetting() != string.Empty ? GetSetting() : string.Empty; }
