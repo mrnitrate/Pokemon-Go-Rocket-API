@@ -28,7 +28,7 @@ namespace PokemonGo.RocketAPI.Logic
             _navigation = new Navigation(_client);
         }
 
-        public async Task Execute()
+        public async void Execute()
         {
             Logger.Write($"Starting Execute on login server: {_clientSettings.AuthType}", LogLevel.Info);
 
