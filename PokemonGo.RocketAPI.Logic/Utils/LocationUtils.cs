@@ -45,6 +45,11 @@ namespace PokemonGo.RocketAPI.Logic.Utils
             brng = RadianToDegree(brng);
             brng = (brng + 360) % 360;
 
+            if (sourceLocation.Latitude < 0)
+            {
+                brng = 360 - brng;
+            }
+
             return brng;
         }
 
