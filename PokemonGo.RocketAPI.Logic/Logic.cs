@@ -84,7 +84,7 @@ namespace PokemonGo.RocketAPI.Logic
 
                 Logger.Write($"Farmed XP: {fortSearch.ExperienceAwarded}, Gems: { fortSearch.GemsAwarded}, Eggs: {fortSearch.PokemonDataEgg} Items: {StringUtils.GetSummedFriendlyNameOfItemAwardList(fortSearch.ItemsAwarded)}", LogLevel.Info);
 
-                await Task.Delay(5000);
+                await Task.Delay(15000);
                 await ExecuteCatchAllNearbyPokemons(client);
             }
         }
