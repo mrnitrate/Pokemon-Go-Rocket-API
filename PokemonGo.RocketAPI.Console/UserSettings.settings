@@ -20,5 +20,8 @@
     <Setting Name="DefaultLongitude" Type="System.Double" Scope="User">
       <Value Profile="(Default)">4.899431</Value>
     </Setting>
+    <Setting Name="WalkingSpeedInKilometerPerHour" Type="System.Double" Scope="User">
+      <Value Profile="(Default)">5</Value>
+    </Setting>
   </Settings>
 </SettingsFile>
