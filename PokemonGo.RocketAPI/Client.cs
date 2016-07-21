@@ -242,7 +242,7 @@ namespace PokemonGo.RocketAPI
                 SpawnPointGuid = spawnPointGuid
             };
 
-            var useItemRequest = RequestBuilder.GetRequest(_unknownAuth, _currentLat, _currentLng, 30,
+            var useItemRequest = RequestBuilder.GetRequest(_unknownAuth, CurrentLat, CurrentLng, 30,
                 new Request.Types.Requests()
                 {
                     Type = (int)RequestType.USE_ITEM_CAPTURE,
