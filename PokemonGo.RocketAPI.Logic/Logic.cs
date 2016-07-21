@@ -29,7 +29,7 @@ namespace PokemonGo.RocketAPI.Logic
         public async void Execute()
         {
             Logger.Write($"Starting Execute on login server: {_clientSettings.AuthType}", LogLevel.Info);
-            
+
             if (_clientSettings.AuthType == AuthType.Ptc)
                 await _client.DoPtcLogin(_clientSettings.PtcUsername, _clientSettings.PtcPassword);
             else if (_clientSettings.AuthType == AuthType.Google)
@@ -40,7 +40,9 @@ namespace PokemonGo.RocketAPI.Logic
                 try
                 {
                     await _client.SetServer();
-                    await TransferDuplicatePokemon();
+                    await EvolveAllPokemonWithEnoughCandy();
+                    await TransferDuplicatePokemon(true);
+                    await RecycleItems();
                     await RepeatAction(10, async () => await ExecuteFarmingPokestopsAndPokemons(_client));
 
                     /*
@@ -109,37 +111,32 @@ namespace PokemonGo.RocketAPI.Logic
                 }
                 while (caughtPokemonResponse.Status == CatchPokemonResponse.Types.CatchStatus.CatchMissed);
 
-                Logger.Write(caughtPokemonResponse.Status == CatchPokemonResponse.Types.CatchStatus.CatchSuccess ? $"We caught a {pokemon.PokemonId} with CP {encounterPokemonResponse?.WildPokemon?.PokemonData?.Cp}" : $"{pokemon.PokemonId} with CP {encounterPokemonResponse?.WildPokemon?.PokemonData?.Cp} got away..", LogLevel.Info);
+                Logger.Write(caughtPokemonResponse.Status == CatchPokemonResponse.Types.CatchStatus.CatchSuccess ? $"We caught a {pokemon.PokemonId} with CP {encounterPokemonResponse?.WildPokemon?.PokemonData?.Cp} using a {pokeball}" : $"{pokemon.PokemonId} with CP {encounterPokemonResponse?.WildPokemon?.PokemonData?.Cp} got away while using a {pokeball}..", LogLevel.Info);
                 await Task.Delay(15000);
             }
         }
-
-        private async Task EvolveAllGivenPokemons(IEnumerable<Pokemon> pokemonToEvolve)
+        
+        private async Task EvolveAllPokemonWithEnoughCandy()
         {
+            var pokemonToEvolve = await _inventory.GetPokemonToEvolve();
             foreach (var pokemon in pokemonToEvolve)
             {
-                EvolvePokemonOut evolvePokemonOutProto;
-                do
-                {
-                    evolvePokemonOutProto = await _client.EvolvePokemon((ulong)pokemon.Id); 
+                var evolvePokemonOutProto = await _client.EvolvePokemon((ulong)pokemon.Id);
 
-                    if (evolvePokemonOutProto.Result == EvolvePokemonOut.Types.EvolvePokemonStatus.PokemonEvolvedSuccess)
-                        Logger.Write($"Evolved {pokemon.PokemonType} successfully for {evolvePokemonOutProto.ExpAwarded}xp", LogLevel.Info);
-                    else
-                        Logger.Write($"Failed to evolve {pokemon.PokemonType}. EvolvePokemonOutProto.Result was {evolvePokemonOutProto.Result}, stopping evolving {pokemon.PokemonType}", LogLevel.Info);
-
-                    await Task.Delay(3000);
-                }
-                while (evolvePokemonOutProto.Result == EvolvePokemonOut.Types.EvolvePokemonStatus.PokemonEvolvedSuccess);
+                if (evolvePokemonOutProto.Result == EvolvePokemonOut.Types.EvolvePokemonStatus.PokemonEvolvedSuccess)
+                    Logger.Write($"Evolved {pokemon.PokemonId} successfully for {evolvePokemonOutProto.ExpAwarded}xp", LogLevel.Info);
+                else
+                        Logger.Write($"Failed to evolve {pokemon.PokemonId}. EvolvePokemonOutProto.Result was {evolvePokemonOutProto.Result}, stopping evolving {pokemon.PokemonId}", LogLevel.Info);
+                    
 
                 await Task.Delay(3000);
             }
         }
 
-        private async Task TransferDuplicatePokemon()
+        private async Task TransferDuplicatePokemon(bool keepPokemonsThatCanEvolve = false)
         {
             var duplicatePokemons = await _inventory.GetDuplicatePokemonToTransfer();
-            
+
             foreach (var duplicatePokemon in duplicatePokemons)
             {
                 var transfer = await _client.TransferPokemon(duplicatePokemon.Id);
@@ -147,14 +144,26 @@ namespace PokemonGo.RocketAPI.Logic
                 await Task.Delay(500);
             }
         }
-        
+
+        private async Task RecycleItems()
+        {
+            var items = await _inventory.GetItemsToRecycle(_clientSettings);
+
+            foreach (var item in items)
+            {
+                var transfer = await _client.RecycleItem((AllEnum.ItemId)item.Item_, item.Count);
+                Logger.Write($"Recycled {item.Count}x {(AllEnum.ItemId)item.Item_}", LogLevel.Info);
+                await Task.Delay(500);
+            }
+        }
+
         private async Task<MiscEnums.Item> GetBestBall(int? pokemonCp)
         {
             var pokeBallsCount = await _inventory.GetItemAmountByType(MiscEnums.Item.ITEM_POKE_BALL);
             var greatBallsCount = await _inventory.GetItemAmountByType(MiscEnums.Item.ITEM_GREAT_BALL);
             var ultraBallsCount = await _inventory.GetItemAmountByType(MiscEnums.Item.ITEM_ULTRA_BALL);
             var masterBallsCount = await _inventory.GetItemAmountByType(MiscEnums.Item.ITEM_MASTER_BALL);
-            
+
             if (masterBallsCount > 0 && pokemonCp >= 1000)
                 return MiscEnums.Item.ITEM_MASTER_BALL;
             else if (ultraBallsCount > 0 && pokemonCp >= 1000)
@@ -164,7 +173,7 @@ namespace PokemonGo.RocketAPI.Logic
 
             if (ultraBallsCount > 0 && pokemonCp >= 600)
                 return MiscEnums.Item.ITEM_ULTRA_BALL;
-            else if(greatBallsCount > 0 && pokemonCp >= 600)
+            else if (greatBallsCount > 0 && pokemonCp >= 600)
                 return MiscEnums.Item.ITEM_GREAT_BALL;
 
             if (greatBallsCount > 0 && pokemonCp >= 350)

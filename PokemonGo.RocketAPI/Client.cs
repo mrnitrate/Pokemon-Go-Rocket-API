@@ -8,6 +8,7 @@ using PokemonGo.RocketAPI.GeneratedCode;
 using PokemonGo.RocketAPI.Helpers;
 using PokemonGo.RocketAPI.Extensions;
 using PokemonGo.RocketAPI.Login;
+using static PokemonGo.RocketAPI.GeneratedCode.Response.Types;
 
 namespace PokemonGo.RocketAPI
 {
@@ -59,7 +60,7 @@ namespace PokemonGo.RocketAPI
                 _accessToken = tokenResponse.id_token;
             }
             
-            if(_accessToken == null)           
+            if (_accessToken == null)
             {
                 var tokenResponse = await GoogleLogin.GetAccessToken();
                 _accessToken = tokenResponse.id_token;
@@ -89,7 +90,8 @@ namespace PokemonGo.RocketAPI
                     Message = customRequest.ToByteString()
                 });
             var updateResponse =
-                await _httpClient.PostProtoPayload<Request, PlayerUpdateResponse>($"https://{_apiUrl}/rpc", updateRequest);
+                await
+                    _httpClient.PostProtoPayload<Request, PlayerUpdateResponse>($"https://{_apiUrl}/rpc", updateRequest);
             return updateResponse;
         }
 
@@ -111,7 +113,7 @@ namespace PokemonGo.RocketAPI
 
         public async Task<GetPlayerResponse> GetProfile()
         {
-            var profileRequest = RequestBuilder.GetInitialRequest(_accessToken, _authType, CurrentLat, CurrentLng, 10,
+            var profileRequest = RequestBuilder.GetInitialRequest(_accessToken, _authType, _currentLat, _currentLng, 10,
                 new Request.Types.Requests() { Type = (int)RequestType.GET_PLAYER });
             return await _httpClient.PostProtoPayload<Request, GetPlayerResponse>($"https://{_apiUrl}/rpc", profileRequest);
         }
@@ -122,6 +124,18 @@ namespace PokemonGo.RocketAPI
                 RequestType.DOWNLOAD_SETTINGS);
             return await _httpClient.PostProtoPayload<Request, DownloadSettingsResponse>($"https://{_apiUrl}/rpc", settingsRequest);
         }
+
+        public async Task<DownloadItemTemplatesResponse> GetItemTemplates()
+        {
+            var settingsRequest = RequestBuilder.GetRequest(_unknownAuth, _currentLat, _currentLng, 10,
+                RequestType.DOWNLOAD_ITEM_TEMPLATES);
+            return
+                await
+                    _httpClient.PostProtoPayload<Request, DownloadItemTemplatesResponse>($"https://{_apiUrl}/rpc",
+                        settingsRequest);
+        }
+
+
 
         public async Task<GetMapObjectsResponse> GetMapObjects()
         {
@@ -285,6 +299,21 @@ namespace PokemonGo.RocketAPI
             return await _httpClient.PostProtoPayload<Request, GetInventoryResponse>($"https://{_apiUrl}/rpc", inventoryRequest);
         }
 
+        public async Task<RecycleInventoryItemResponse> RecycleItem(AllEnum.ItemId itemId, int amount)
+        {
+            var customRequest = new RecycleInventoryItem
+            {
+                ItemId = (AllEnum.ItemId)Enum.Parse(typeof(AllEnum.ItemId), itemId.ToString()),
+                Count = amount
+            };
 
+            var releasePokemonRequest = RequestBuilder.GetRequest(_unknownAuth, _currentLat, _currentLng, 30,
+                new Request.Types.Requests()
+                {
+                    Type = (int)RequestType.RECYCLE_INVENTORY_ITEM,
+                    Message = customRequest.ToByteString()
+                });
+            return await _httpClient.PostProtoPayload<Request, RecycleInventoryItemResponse>($"https://{_apiUrl}/rpc", releasePokemonRequest);
+        }
     }
 }
