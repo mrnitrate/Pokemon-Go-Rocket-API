@@ -8,6 +8,7 @@ namespace PokemonGo.RocketAPI.Logic
     public class Navigation
     {
 
+        private static readonly double  speedDownTo = 10 /3.6;
         private readonly Client _client;
 
         public Navigation(Client client)
@@ -21,7 +22,7 @@ namespace PokemonGo.RocketAPI.Logic
 
             Location sourceLocation = new Location(_client.CurrentLat, _client.CurrentLng);
 
-            Logger.Write($"Distance to target location: {LocationUtils.CalculateDistanceInMeters(sourceLocation, targetLocation)} meters.", LogLevel.Info);
+            Logger.Write($"Distance to target location: {LocationUtils.CalculateDistanceInMeters(sourceLocation, targetLocation):0.##} meters.", LogLevel.Info);
 
             double nextWaypointBearing = LocationUtils.DegreeBearing(sourceLocation, targetLocation);
             double nextWaypointDistance = speedInMetersPerSecond;
@@ -36,17 +37,32 @@ namespace PokemonGo.RocketAPI.Logic
                 await Task.Delay(3000);
                 double millisecondsUntilGetUpdatePlayerLocationResponse = (DateTime.Now - requestSendDateTime).TotalMilliseconds;
 
-                nextWaypointDistance = millisecondsUntilGetUpdatePlayerLocationResponse / 1000 * speedInMetersPerSecond;
                 sourceLocation = new Location(_client.CurrentLat, _client.CurrentLng);
+
+                if (LocationUtils.CalculateDistanceInMeters(sourceLocation, targetLocation) < 40)
+                {
+                    if (speedInMetersPerSecond > speedDownTo)
+                    {
+                        Logger.Write("We are within 40 meters of the target. Speeding down to 10 km/h to not pass the target.", LogLevel.Info);
+                        speedInMetersPerSecond = speedDownTo;
+                    }
+                    else
+                    {
+                        Logger.Write("We are within 40 meters of the target, attempting to interact.", LogLevel.Info);
+                    }
+                }
+                else
+                {
+                    Logger.Write($"Distance to target location: {LocationUtils.CalculateDistanceInMeters(sourceLocation, targetLocation):0.##} meters.", LogLevel.Debug);
+                }
+
+                nextWaypointDistance = millisecondsUntilGetUpdatePlayerLocationResponse / 1000 * speedInMetersPerSecond;
                 nextWaypointBearing = LocationUtils.DegreeBearing(sourceLocation, targetLocation);
                 waypoint = LocationUtils.CreateWaypoint(sourceLocation, nextWaypointDistance, nextWaypointBearing);
 
                 requestSendDateTime = DateTime.Now;
                 result = await _client.UpdatePlayerLocation(waypoint.Latitude, waypoint.Longitude);
-
-                Logger.Write($"Distance to target location: {LocationUtils.CalculateDistanceInMeters(sourceLocation, targetLocation)} meters.", LogLevel.Info);
-
-            } while (LocationUtils.CalculateDistanceInMeters(sourceLocation, targetLocation) >= 10);
+            } while (LocationUtils.CalculateDistanceInMeters(sourceLocation, targetLocation) >= 30);
 
             return result;
         }
