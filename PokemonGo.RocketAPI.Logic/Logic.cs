@@ -107,7 +107,14 @@ namespace PokemonGo.RocketAPI.Logic
                 CatchPokemonResponse caughtPokemonResponse;
                 do
                 {
+                    if (encounterPokemonResponse?.CaptureProbability.CaptureProbability_.First() < 0.4)
+                    {
+                        //Throw berry is we can
+                        await UseBerry(pokemon.EncounterId, pokemon.SpawnpointId);
+                    }
+
                     caughtPokemonResponse = await client.CatchPokemon(pokemon.EncounterId, pokemon.SpawnpointId, pokemon.Latitude, pokemon.Longitude, pokeball);
+                    await Task.Delay(2000);
                 }
                 while (caughtPokemonResponse.Status == CatchPokemonResponse.Types.CatchStatus.CatchMissed);
 
@@ -189,6 +196,20 @@ namespace PokemonGo.RocketAPI.Logic
                 return MiscEnums.Item.ITEM_MASTER_BALL;
 
             return MiscEnums.Item.ITEM_POKE_BALL;
+        }
+
+        public async Task UseBerry(ulong encounterId, string spawnPointId)
+        {
+            var inventoryBalls = await _inventory.GetItems();
+            var berries = inventoryBalls.Where(p => (ItemId) p.Item_ == ItemId.ItemRazzBerry);
+            var berry = berries.FirstOrDefault();
+
+            if (berry == null)
+                return;
+            
+            var useRaspberry = await _client.UseCaptureItem(encounterId, AllEnum.ItemId.ItemRazzBerry, spawnPointId);
+            Logger.Write($"Use Rasperry. Remaining: {berry.Count}", LogLevel.Info);
+            await Task.Delay(3000);
         }
     }
 }
