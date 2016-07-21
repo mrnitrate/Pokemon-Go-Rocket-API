@@ -51,7 +51,6 @@ namespace PokemonGo.RocketAPI.Logic.Utils
 
         public static double DegreeBearing(Location sourceLocation, Location targetLocation) // from http://stackoverflow.com/questions/2042599/direction-between-2-latitude-longitude-points-in-c-sharp
         {
-            const double R = 6371; //earth’s radius (mean radius = 6,371km)
             var dLon = ToRad(targetLocation.Longitude - sourceLocation.Longitude);
             var dPhi = Math.Log(
                 Math.Tan(ToRad(targetLocation.Latitude) / 2 + Math.PI / 4) / Math.Tan(ToRad(sourceLocation.Latitude) / 2 + Math.PI / 4));
