@@ -21,9 +21,6 @@ namespace PokemonGo.RocketAPI.Logic
 
             Location sourceLocation = new Location(_client.CurrentLat, _client.CurrentLng);
 
-            Console.WriteLine($"[{DateTime.Now.ToString("HH:mm:ss")}] Source Location {sourceLocation.Latitude} {sourceLocation.Longitude}.");
-            Console.WriteLine($"[{DateTime.Now.ToString("HH:mm:ss")}] Target Location {targetLocation.Latitude} {targetLocation.Longitude}.");
-
             Console.WriteLine($"[{DateTime.Now.ToString("HH:mm:ss")}] Distance to target location: {LocationUtils.CalculateDistanceInMeters(sourceLocation, targetLocation)} meters.");
 
             double nextWaypointBearing = LocationUtils.DegreeBearing(sourceLocation, targetLocation);
@@ -43,8 +40,6 @@ namespace PokemonGo.RocketAPI.Logic
                 sourceLocation = new Location(_client.CurrentLat, _client.CurrentLng);
                 nextWaypointBearing = LocationUtils.DegreeBearing(sourceLocation, targetLocation);
                 waypoint = LocationUtils.CreateWaypoint(sourceLocation, nextWaypointDistance, nextWaypointBearing);
-
-                Console.WriteLine($"[{DateTime.Now.ToString("HH:mm:ss")}] Source Location {sourceLocation.Latitude} {sourceLocation.Longitude}.");
 
                 requestSendDateTime = DateTime.Now;
                 result = await _client.UpdatePlayerLocation(waypoint.Latitude, waypoint.Longitude);
