@@ -158,7 +158,7 @@ namespace PokemonGo.RocketAPI.Logic
             CatchPokemonResponse caughtPokemonResponse;
             do
             {
-                if (encounter?.CaptureProbability.CaptureProbability_.First() < 0.4)
+                if (encounter?.CaptureProbability.CaptureProbability_.First() < 0.35)
                 {
                     //Throw berry is we can
                     await UseBerry(pokemon.EncounterId, pokemon.SpawnpointId);
