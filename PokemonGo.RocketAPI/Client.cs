@@ -4,6 +4,7 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using Google.Protobuf;
 using PokemonGo.RocketAPI.Enums;
+using PokemonGo.RocketAPI.Exceptions;
 using PokemonGo.RocketAPI.GeneratedCode;
 using PokemonGo.RocketAPI.Helpers;
 using PokemonGo.RocketAPI.Extensions;
@@ -101,6 +102,10 @@ namespace PokemonGo.RocketAPI
                 RequestType.GET_PLAYER, RequestType.GET_HATCHED_OBJECTS, RequestType.GET_INVENTORY,
                 RequestType.CHECK_AWARDED_BADGES, RequestType.DOWNLOAD_SETTINGS);
             var serverResponse = await _httpClient.PostProto<Request>(Resources.RpcUrl, serverRequest);
+            
+            if (serverResponse.Auth == null)
+                throw new AccessTokenExpiredException();
+
             _unknownAuth = new Request.Types.UnknownAuth()
             {
                 Unknown71 = serverResponse.Auth.Unknown71,
