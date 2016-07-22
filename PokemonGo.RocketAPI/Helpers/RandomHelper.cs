@@ -33,5 +33,10 @@ namespace PokemonGo.RocketAPI.Helpers
         {
             return GetDoubleRandom(value - jitter, value + jitter);
         }
+
+        public static Task RandomDelay(int min, int max)
+        {
+            return Task.Delay((int)GetLongRandom(min, max));
+        }
     }
 }

@@ -20,6 +20,7 @@ namespace PokemonGo.RocketAPI.Logic
         private readonly ISettings _clientSettings;
         private readonly Inventory _inventory;
         private readonly Navigation _navigation;
+        private Statistics _stats;
 
         public Logic(ISettings clientSettings)
         {
@@ -27,6 +28,7 @@ namespace PokemonGo.RocketAPI.Logic
             _client = new Client(_clientSettings);
             _inventory = new Inventory(_client);
             _navigation = new Navigation(_client);
+            _stats = new Statistics();
         }
 
         public async Task Execute()
@@ -85,7 +87,7 @@ namespace PokemonGo.RocketAPI.Logic
                     Logger.Write($"Exception: {ex}", LogLevel.Error);
                 }
 
-                await Task.Delay(10000);
+                await Task.Delay(2000);
             }
         }
 
@@ -118,7 +120,10 @@ namespace PokemonGo.RocketAPI.Logic
                 Logger.Write($"Using Pokestop: {fortInfo.Name} in {Math.Round(distance)}m distance");
                 Logger.Write($"Farmed XP: {fortSearch.ExperienceAwarded}, Gems: { fortSearch.GemsAwarded}, Eggs: {fortSearch.PokemonDataEgg} Items: {StringUtils.GetSummedFriendlyNameOfItemAwardList(fortSearch.ItemsAwarded)}", LogLevel.Info);
 
-                await Task.Delay((int)RandomHelper.GetLongRandom(1000,2500));
+                _stats.addExperience(fortSearch.ExperienceAwarded);
+                _stats.updateConsoleTitle(_client);
+
+                await RandomHelper.RandomDelay(700, 1000);
                 await RecycleItems();
                 await ExecuteCatchAllNearbyPokemons();
                 await TransferDuplicatePokemon();
@@ -148,7 +153,7 @@ namespace PokemonGo.RocketAPI.Logic
                 else
                     Logger.Write($"Encounter problem: {encounter?.Status}");
             }
-            await Task.Delay((int)RandomHelper.GetLongRandom(7000,12000));
+            await RandomHelper.RandomDelay(7000,12000);
         }
 
         private async Task CatchEncounter(EncounterResponse encounter, MapPokemon pokemon)
@@ -167,8 +172,18 @@ namespace PokemonGo.RocketAPI.Logic
                 var pokeball = await GetBestBall(encounter?.WildPokemon);
                 var distance = Navigation.DistanceBetween2Coordinates(_client.CurrentLat, _client.CurrentLng, pokemon.Latitude, pokemon.Longitude);
                 caughtPokemonResponse = await _client.CatchPokemon(pokemon.EncounterId, pokemon.SpawnpointId, pokemon.Latitude, pokemon.Longitude, pokeball);
+
                 Logger.Write(caughtPokemonResponse.Status == CatchPokemonResponse.Types.CatchStatus.CatchSuccess ? $"We caught a {pokemon.PokemonId} with CP {encounter?.WildPokemon?.PokemonData?.Cp} ({CalculatePokemonPerfection(encounter?.WildPokemon?.PokemonData).ToString("0.00")}% perfect) and CaptureProbability: {encounter?.CaptureProbability.CaptureProbability_.First()} using a {pokeball} in {Math.Round(distance)}m distance" : $"{pokemon.PokemonId} with CP {encounter?.WildPokemon?.PokemonData?.Cp} CaptureProbability: {encounter?.CaptureProbability.CaptureProbability_.First()} in {Math.Round(distance)}m distance {caughtPokemonResponse.Status} while using a {pokeball}..", LogLevel.Info);
-                await Task.Delay(1000);
+                if(caughtPokemonResponse.Status == CatchPokemonResponse.Types.CatchStatus.CatchSuccess)
+                {
+                    foreach (int xp in caughtPokemonResponse.Scores.Xp)
+                        _stats.addExperience(xp);
+                    _stats.increasePokemons();
+                    var profile = await _client.GetProfile();
+                    _stats.getStardust(profile.Profile.Currency.ToArray()[1].Amount);
+                }
+
+                await RandomHelper.RandomDelay(1700, 2200);
             }
             while (caughtPokemonResponse.Status == CatchPokemonResponse.Types.CatchStatus.CatchMissed || caughtPokemonResponse.Status == CatchPokemonResponse.Types.CatchStatus.CatchEscape) ;
         }
@@ -181,11 +196,16 @@ namespace PokemonGo.RocketAPI.Logic
                 var evolvePokemonOutProto = await _client.EvolvePokemon((ulong)pokemon.Id);
 
                 if (evolvePokemonOutProto.Result == EvolvePokemonOut.Types.EvolvePokemonStatus.PokemonEvolvedSuccess)
+                {
+                    _stats.addExperience(evolvePokemonOutProto.ExpAwarded);
+                    _stats.updateConsoleTitle(_client);
+
                     Logger.Write($"Evolved {pokemon.PokemonId} successfully for {evolvePokemonOutProto.ExpAwarded}xp", LogLevel.Info);
+                }
                 else
-                        Logger.Write($"Failed to evolve {pokemon.PokemonId}. EvolvePokemonOutProto.Result was {evolvePokemonOutProto.Result}, stopping evolving {pokemon.PokemonId}", LogLevel.Info);
+                    Logger.Write($"Failed to evolve {pokemon.PokemonId}. EvolvePokemonOutProto.Result was {evolvePokemonOutProto.Result}, stopping evolving {pokemon.PokemonId}", LogLevel.Info);
                     
-                await Task.Delay((int)RandomHelper.GetLongRandom(2500, 4500));
+                await RandomHelper.RandomDelay(2500, 3500);
             }
         }
 
@@ -200,7 +220,7 @@ namespace PokemonGo.RocketAPI.Logic
                 
                 var transfer = await _client.TransferPokemon(duplicatePokemon.Id);
                 var bestPokemonOfType = await _inventory.GetHighestCPofType(duplicatePokemon);
-                await Task.Delay((int)RandomHelper.GetLongRandom(350, 750));
+                await RandomHelper.RandomDelay(350, 750);
                 Logger.Write($"Transfer {duplicatePokemon.PokemonId} with {duplicatePokemon.Cp} CP (Best: {bestPokemonOfType})", LogLevel.Info);
             }
         }
@@ -213,7 +233,11 @@ namespace PokemonGo.RocketAPI.Logic
             {
                 var transfer = await _client.RecycleItem((AllEnum.ItemId)item.Item_, item.Count);
                 Logger.Write($"Recycled {item.Count}x {(AllEnum.ItemId)item.Item_}", LogLevel.Info);
-                await Task.Delay((int)RandomHelper.GetLongRandom(400, 800));
+
+                _stats.addItemsRemoved(item.Count);
+                _stats.updateConsoleTitle(_client);
+
+                await RandomHelper.RandomDelay(400, 800);
             }
         }
 
