@@ -17,6 +17,8 @@ namespace PokemonGo.RocketAPI.Console
         public double DefaultLatitude => UserSettings.Default.DefaultLatitude;
         public double DefaultLongitude => UserSettings.Default.DefaultLongitude;
         public double DefaultAltitude => UserSettings.Default.DefaultAltitude;
+        public float KeepMinIVPercentage => UserSettings.Default.KeepMinIVPercentage;
+        public int KeepMinCP => UserSettings.Default.KeepMinCP;
 
         public string GoogleRefreshToken
         {
@@ -74,7 +76,7 @@ namespace PokemonGo.RocketAPI.Console
                      new KeyValuePair<ItemId, int>(ItemId.ItemItemStorageUpgrade, 100),
                 };
             }
-        }
+            }
 
         public ICollection<PokemonId> PokemonsToEvolve
         {
