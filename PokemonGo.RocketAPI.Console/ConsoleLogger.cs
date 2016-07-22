@@ -30,7 +30,8 @@ namespace PokemonGo.RocketAPI.Console
         /// </summary>
         /// <param name="message">The message to log. The current time will be prepended.</param>
         /// <param name="level">Optional. Default <see cref="LogLevel.Info"/>.</param>
-        public void Write(string message, LogLevel level = LogLevel.Info)
+        /// <param name="color">Optional. Default automatic color.</param>
+        public void Write(string message, LogLevel level = LogLevel.Info, ConsoleColor color = ConsoleColor.Black)
         {
             if (level > maxLogLevel)
                 return;
