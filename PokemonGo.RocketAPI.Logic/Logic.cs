@@ -134,7 +134,11 @@ namespace PokemonGo.RocketAPI.Logic
             foreach (var pokemon in pokemons)
             {
                 var distance = Navigation.DistanceBetween2Coordinates(_client.CurrentLat, _client.CurrentLng, pokemon.Latitude, pokemon.Longitude);
-                await Task.Delay(distance > 100 ? 15000 : 500);
+                if (distance > 100)
+                    await Task.Delay((int)distance * 100);
+                else
+                    await Task.Delay((int)distance * 6);
+
                 await _client.UpdatePlayerLocation(RandomHelper.JitterDouble(pokemon.Latitude, 0.0001), RandomHelper.JitterDouble(pokemon.Longitude, 0.0001), _clientSettings.DefaultAltitude);
 
                 var encounter = await _client.EncounterPokemon(pokemon.EncounterId, pokemon.SpawnpointId);
