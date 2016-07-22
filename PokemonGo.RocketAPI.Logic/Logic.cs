@@ -52,6 +52,10 @@ namespace PokemonGo.RocketAPI.Logic
                 {
                     Logger.Write($"Access token expired", LogLevel.Info);
                 }
+                catch (Exception ex)
+                {
+                    Logger.Write($"Exception: {ex}", LogLevel.Error);
+                }
                 await Task.Delay(10000);
             }
         }
@@ -83,7 +87,7 @@ namespace PokemonGo.RocketAPI.Logic
                 }
                 catch (Exception ex)
                 {
-                    Logger.Write($"Exception: {ex}", LogLevel.Error);
+                    throw;
                 }
 
                 await Task.Delay(2000);
