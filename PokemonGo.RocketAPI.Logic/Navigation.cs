@@ -63,7 +63,7 @@ namespace PokemonGo.RocketAPI.Logic
 
                 requestSendDateTime = DateTime.Now;
                 result = await _client.UpdatePlayerLocation(waypoint.Latitude, waypoint.Longitude, _client.Settings.DefaultAltitude);
-                await Task.Delay(Math.Min((int)(distanceToTarget / speedInMetersPerSecond), 3000));
+                await Task.Delay(Math.Min((int)(distanceToTarget / speedInMetersPerSecond * 1000), 3000));
             } while (LocationUtils.CalculateDistanceInMeters(sourceLocation, targetLocation) >= 30);
 
             return result;
