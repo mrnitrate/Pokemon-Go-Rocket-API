@@ -187,6 +187,7 @@ namespace PokemonGo.RocketAPI.Logic
             foreach (var duplicatePokemon in duplicatePokemons)
             {
                 if (Perfect(duplicatePokemon) >= keepPerfectPokemonLimit) continue;
+                if (duplicatePokemon.Favorite > 0) continue;
                 var transfer = await _client.TransferPokemon(duplicatePokemon.Id);
                 Logger.Write($"Transfer {duplicatePokemon.PokemonId} with {duplicatePokemon.Cp} CP", LogLevel.Info);
                 await Task.Delay(500);
