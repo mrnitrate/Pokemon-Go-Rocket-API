@@ -84,10 +84,15 @@ namespace PokemonGo.RocketAPI.Logic
         }
 
 
-        public async Task<IEnumerable<PokemonData>> GetPokemonToEvolve()
+        public async Task<IEnumerable<PokemonData>> GetPokemonToEvolve(IEnumerable<PokemonId> filter = null)
         {
             var myPokemons = await GetPokemons();
-            var pokemons = myPokemons.Where(p => p.DeployedFortId == 0).ToList(); //Don't evolve pokemon in gyms
+            myPokemons = myPokemons.Where(p => p.DeployedFortId == 0).OrderBy(p => p.Cp); //Don't evolve pokemon in gyms
+            if(filter != null)
+            {
+                myPokemons = myPokemons.Where(p => filter.Contains(p.PokemonId));
+            }
+            var pokemons = myPokemons.ToList();
 
             var myPokemonSettings = await GetPokemonSettings();
             var pokemonSettings = myPokemonSettings.ToList();

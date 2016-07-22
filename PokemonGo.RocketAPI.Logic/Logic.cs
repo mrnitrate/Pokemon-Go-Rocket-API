@@ -56,11 +56,10 @@ namespace PokemonGo.RocketAPI.Logic
                 try
                 {
                     await _client.SetServer();
-
                     var inventory = await _client.GetInventory();
                     var playerStats = inventory.InventoryDelta.InventoryItems.Select(i => i.InventoryItemData).FirstOrDefault(i => i.PlayerStats != null);
                     
-                    await EvolveAllPokemonWithEnoughCandy();
+                    await EvolveAllPokemonWithEnoughCandy(_clientSettings.pokemonsToEvolve);
                     await TransferDuplicatePokemon();
                     await RecycleItems();
                     await ExecuteFarmingPokestopsAndPokemons();
@@ -158,9 +157,9 @@ namespace PokemonGo.RocketAPI.Logic
             while (caughtPokemonResponse.Status == CatchPokemonResponse.Types.CatchStatus.CatchMissed || caughtPokemonResponse.Status == CatchPokemonResponse.Types.CatchStatus.CatchEscape) ;
         }
 
-        private async Task EvolveAllPokemonWithEnoughCandy()
+        private async Task EvolveAllPokemonWithEnoughCandy(IEnumerable<PokemonId> filter = null)
         {
-            var pokemonToEvolve = await _inventory.GetPokemonToEvolve();
+            var pokemonToEvolve = await _inventory.GetPokemonToEvolve(filter);
             foreach (var pokemon in pokemonToEvolve)
             {
                 var evolvePokemonOutProto = await _client.EvolvePokemon((ulong)pokemon.Id);
