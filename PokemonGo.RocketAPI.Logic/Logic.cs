@@ -219,7 +219,10 @@ namespace PokemonGo.RocketAPI.Logic
                     continue;
                 
                 var transfer = await _client.TransferPokemon(duplicatePokemon.Id);
-                var bestPokemonOfType = await _inventory.GetHighestCPofType(duplicatePokemon);
+
+                _stats.increasePokemonsTransfered();
+                _stats.updateConsoleTitle(_client);
+
                 await RandomHelper.RandomDelay(350, 750);
                 Logger.Write($"Transfer {duplicatePokemon.PokemonId} with {duplicatePokemon.Cp} CP (Best: {bestPokemonOfType})", LogLevel.Info);
             }
