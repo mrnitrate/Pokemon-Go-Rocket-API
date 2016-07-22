@@ -131,8 +131,8 @@ namespace PokemonGo.RocketAPI.Logic
             {
                 improvement = false;
                 List<FortData> bestSolutionThisRun = new List<FortData>(bestSolutionOverall);
-                for (int i = 0; i < nodes.Count; i++)
-                    for (int ii = 0; ii < nodes.Count; ii++)
+                for (int i = 1; i < nodes.Count; i++)
+                    for (int ii = 1; ii < nodes.Count; ii++)
                     {
                         List<FortData> nodesCopy = new List<FortData>(bestSolutionThisRun);
                         Swap(nodesCopy, i, ii);
