@@ -90,7 +90,7 @@ namespace PokemonGo.RocketAPI.Logic
 
         public static float Perfect(PokemonData poke)
         {
-            return ((float)(poke.IndividualAttack + poke.IndividualDefense + poke.IndividualStamina) / (3.0f * 15.0f)) * 100.0f;
+            return ((float)(poke.IndividualAttack*2 + poke.IndividualDefense + poke.IndividualStamina) / (4.0f * 15.0f)) * 100.0f;
         }
 
         public async Task RepeatAction(int repeat, Func<Task> action)
@@ -180,15 +180,15 @@ namespace PokemonGo.RocketAPI.Logic
             }
         }
 
-        private async Task TransferDuplicatePokemon(bool keepPokemonsThatCanEvolve = false)
+        private async Task TransferDuplicatePokemon(bool keepPokemonsThatCanEvolve = false, float keepPerfectPokemonLimit = 85.0f)
         {
             var duplicatePokemons = await _inventory.GetDuplicatePokemonToTransfer(keepPokemonsThatCanEvolve);
 
             foreach (var duplicatePokemon in duplicatePokemons)
             {
-                if (Perfect(duplicatePokemon) >= _clientSettings.KeepMinIVPercentage || duplicatePokemon.Favorite > 0 || (_clientSettings.KeepMinCP > 0 && _clientSettings.KeepMinCP > duplicatePokemon.Cp)) continue;
+                if (Perfect(duplicatePokemon) >= keepPerfectPokemonLimit) continue;
                 var transfer = await _client.TransferPokemon(duplicatePokemon.Id);
-                Logger.Write($"Transfer {duplicatePokemon.PokemonId} with {duplicatePokemon.Cp} CP ({Perfect(duplicatePokemon)}%)", LogLevel.Info);
+                Logger.Write($"Transfer {duplicatePokemon.PokemonId} with {duplicatePokemon.Cp} CP", LogLevel.Info);
                 await Task.Delay(500);
             }
         }
