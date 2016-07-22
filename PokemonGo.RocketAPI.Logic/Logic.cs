@@ -19,8 +19,8 @@ namespace PokemonGo.RocketAPI.Logic
         private readonly Client _client;
         private readonly ISettings _clientSettings;
         private readonly Inventory _inventory;
+        private readonly Statistics _stats;
         private readonly Navigation _navigation;
-        private Statistics _stats;
 
         public Logic(ISettings clientSettings)
         {
@@ -62,7 +62,6 @@ namespace PokemonGo.RocketAPI.Logic
             {
                 try
                 {
-                    await DisplayPlayerLevelInTitle();
                     await EvolveAllPokemonWithEnoughCandy();
                     await TransferDuplicatePokemon();
                     await RecycleItems();
@@ -291,20 +290,7 @@ namespace PokemonGo.RocketAPI.Logic
             
             var useRaspberry = await _client.UseCaptureItem(encounterId, AllEnum.ItemId.ItemRazzBerry, spawnPointId);
             Logger.Write($"Use Rasperry. Remaining: {berry.Count}", LogLevel.Info);
-            await Task.Delay((int)RandomHelper.GetLongRandom(1000, 2500));
-        }
-
-        private async Task DisplayPlayerLevelInTitle()
-        {
-            var playerStats = await _inventory.GetPlayerStats();
-            var playerStat = playerStats.FirstOrDefault();
-            if (playerStat != null)
-            {
-                var message = $"Player level {playerStat.Level:0} - ({(playerStat.Experience - playerStat.PrevLevelXp):0} / {(playerStat.NextLevelXp - playerStat.PrevLevelXp):0})";
-                System.Console.Title = message;
-                Logger.Write(message);
-            }
-            await Task.Delay(5000);
+            await RandomHelper.RandomDelay(1000, 2500);
         }
     }
 }
