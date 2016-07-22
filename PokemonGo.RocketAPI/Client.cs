@@ -30,11 +30,18 @@ namespace PokemonGo.RocketAPI
         public Client(ISettings settings)
         {
             Settings = settings;
-            if (File.Exists(Directory.GetCurrentDirectory() + "\\Coords.txt"))
+            if (File.Exists(Directory.GetCurrentDirectory() + "\\Coords.txt") && File.ReadAllText(Directory.GetCurrentDirectory() + "\\Coords.txt").Contains(":"))
             {
-                string latlngFromFile = File.ReadAllText(Directory.GetCurrentDirectory() + "\\Coords.txt");
-                String[] latlng = latlngFromFile.Split(':');
-                SetCoordinates(Convert.ToDouble(latlng[0]), Convert.ToDouble(latlng[1]), Settings.DefaultAltitude);
+                var latlngFromFile = File.ReadAllText(Directory.GetCurrentDirectory() + "\\Coords.txt");
+                var latlng = latlngFromFile.Split(':');
+                if (latlng[0].Length != 0 && latlng[1].Length != 0)
+                {
+                    SetCoordinates(Convert.ToDouble(latlng[0]), Convert.ToDouble(latlng[1]), Settings.DefaultAltitude);
+                }
+                else
+                {
+                    SetCoordinates(Settings.DefaultLatitude, Settings.DefaultLongitude, Settings.DefaultAltitude);
+                }
             }
             else
             {
