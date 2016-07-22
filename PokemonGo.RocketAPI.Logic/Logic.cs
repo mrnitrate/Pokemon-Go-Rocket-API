@@ -180,16 +180,15 @@ namespace PokemonGo.RocketAPI.Logic
             }
         }
 
-        private async Task TransferDuplicatePokemon(bool keepPokemonsThatCanEvolve = false, float keepPerfectPokemonLimit = 85.0f)
+        private async Task TransferDuplicatePokemon(bool keepPokemonsThatCanEvolve = false)
         {
             var duplicatePokemons = await _inventory.GetDuplicatePokemonToTransfer(keepPokemonsThatCanEvolve);
 
             foreach (var duplicatePokemon in duplicatePokemons)
             {
-                if (Perfect(duplicatePokemon) >= keepPerfectPokemonLimit) continue;
-                if (duplicatePokemon.Favorite > 0) continue;
+                if (Perfect(duplicatePokemon) >= _clientSettings.KeepMinIVPercentage || duplicatePokemon.Favorite > 0 || (_clientSettings.KeepMinCP > 0 && _clientSettings.KeepMinCP > duplicatePokemon.Cp)) continue;
                 var transfer = await _client.TransferPokemon(duplicatePokemon.Id);
-                Logger.Write($"Transfer {duplicatePokemon.PokemonId} with {duplicatePokemon.Cp} CP", LogLevel.Info);
+                Logger.Write($"Transfer {duplicatePokemon.PokemonId} with {duplicatePokemon.Cp} CP ({Perfect(duplicatePokemon)}%)", LogLevel.Info);
                 await Task.Delay(500);
             }
         }
