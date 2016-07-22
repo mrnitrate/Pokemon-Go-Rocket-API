@@ -15,7 +15,7 @@ namespace PokemonGo.RocketAPI
 {
     public class Client
     {
-        private readonly ISettings _settings;
+        public ISettings Settings { get; }
         private readonly HttpClient _httpClient;
         private AuthType _authType = AuthType.Google;
         public string AccessToken { get; set; }
@@ -28,8 +28,8 @@ namespace PokemonGo.RocketAPI
 
         public Client(ISettings settings)
         {
-            _settings = settings;
-            SetCoordinates(_settings.DefaultLatitude, _settings.DefaultLongitude, _settings.DefaultAltitude);
+            Settings = settings;
+            SetCoordinates(Settings.DefaultLatitude, Settings.DefaultLongitude, Settings.DefaultAltitude);
 
             //Setup HttpClient and create default headers
             HttpClientHandler handler = new HttpClientHandler()
@@ -59,9 +59,9 @@ namespace PokemonGo.RocketAPI
             _authType = AuthType.Google;
 
             GoogleLogin.TokenResponseModel tokenResponse = null;
-            if (_settings.GoogleRefreshToken != string.Empty)
+            if (Settings.GoogleRefreshToken != string.Empty)
             {
-                tokenResponse = await GoogleLogin.GetAccessToken(_settings.GoogleRefreshToken);
+                tokenResponse = await GoogleLogin.GetAccessToken(Settings.GoogleRefreshToken);
                 AccessToken = tokenResponse?.id_token;
             }
             
@@ -69,7 +69,7 @@ namespace PokemonGo.RocketAPI
             {
                 var deviceCode = await GoogleLogin.GetDeviceCode();
                 tokenResponse = await GoogleLogin.GetAccessToken(deviceCode);
-                _settings.GoogleRefreshToken = tokenResponse?.refresh_token;
+                Settings.GoogleRefreshToken = tokenResponse?.refresh_token;
                 AccessToken = tokenResponse?.id_token;
             }
             

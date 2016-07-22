@@ -15,6 +15,7 @@ namespace PokemonGo.RocketAPI
         string PtcUsername { get; }
         float KeepMinIVPercentage { get; }
         int KeepMinCP { get; }
+        double WalkingSpeedInKilometerPerHour { get; }
 
         ICollection<KeyValuePair<AllEnum.ItemId, int>> ItemRecycleFilter { get; }
 

@@ -18,12 +18,14 @@ namespace PokemonGo.RocketAPI.Logic
         private readonly Client _client;
         private readonly ISettings _clientSettings;
         private readonly Inventory _inventory;
+        private readonly Navigation _navigation;
 
         public Logic(ISettings clientSettings)
         {
             _clientSettings = clientSettings;
             _client = new Client(_clientSettings);
             _inventory = new Inventory(_client);
+            _navigation = new Navigation(_client);
         }
 
         public async Task Execute()
@@ -102,12 +104,14 @@ namespace PokemonGo.RocketAPI.Logic
         {
             var mapObjects = await _client.GetMapObjects();
 
-            var pokeStops = mapObjects.MapCells.SelectMany(i => i.Forts).Where(i => i.Type == FortType.Checkpoint && i.CooldownCompleteTimestampMs < DateTime.UtcNow.ToUnixTime());
+            var pokeStops = mapObjects.MapCells.SelectMany(i => i.Forts).Where(i => i.Type == FortType.Checkpoint && i.CooldownCompleteTimestampMs < DateTime.UtcNow.ToUnixTime()).OrderBy(i => LocationUtils.CalculateDistanceInMeters(new Navigation.Location(_client.CurrentLat, _client.CurrentLng), new Navigation.Location(i.Latitude, i.Longitude)));
 
             foreach (var pokeStop in pokeStops)
             {
                 var distance = Navigation.DistanceBetween2Coordinates(_client.CurrentLat, _client.CurrentLng, pokeStop.Latitude, pokeStop.Longitude);
-                var update = await _client.UpdatePlayerLocation(pokeStop.Latitude, pokeStop.Longitude, _clientSettings.DefaultAltitude);
+
+                var update = await _navigation.HumanLikeWalking(new Navigation.Location(pokeStop.Latitude, pokeStop.Longitude), _clientSettings.WalkingSpeedInKilometerPerHour);
+
                 var fortInfo = await _client.GetFort(pokeStop.Id, pokeStop.Latitude, pokeStop.Longitude);
                 var fortSearch = await _client.SearchFort(pokeStop.Id, pokeStop.Latitude, pokeStop.Longitude);
                 Logger.Write($"Using Pokestop: {fortInfo.Name} in {Math.Round(distance)}m distance");
@@ -124,22 +128,22 @@ namespace PokemonGo.RocketAPI.Logic
         {
             var mapObjects = await _client.GetMapObjects();
 
-            var pokemons = mapObjects.MapCells.SelectMany(i => i.CatchablePokemons);
+            var pokemons = mapObjects.MapCells.SelectMany(i => i.CatchablePokemons).OrderBy(i => LocationUtils.CalculateDistanceInMeters(new Navigation.Location(_client.CurrentLat, _client.CurrentLng), new Navigation.Location(i.Latitude, i.Longitude)));
 
             foreach (var pokemon in pokemons)
             {
                 var distance = Navigation.DistanceBetween2Coordinates(_client.CurrentLat, _client.CurrentLng, pokemon.Latitude, pokemon.Longitude);
                 await Task.Delay(distance > 100 ? 15000 : 500);
-                
+
                 var encounter = await _client.EncounterPokemon(pokemon.EncounterId, pokemon.SpawnpointId);
 
                 if (encounter.Status == EncounterResponse.Types.Status.EncounterSuccess)
-                    await CatchEncounter(encounter, pokemon);
+                await CatchEncounter(encounter, pokemon);
                 else
                     Logger.Write($"Encounter problem: {encounter?.Status}");
             }
-            await Task.Delay(15000);
-        }
+                await Task.Delay(15000);
+            }
 
         private async Task CatchEncounter(EncounterResponse encounter, MapPokemon pokemon)
         {
@@ -162,7 +166,7 @@ namespace PokemonGo.RocketAPI.Logic
             }
             while (caughtPokemonResponse.Status == CatchPokemonResponse.Types.CatchStatus.CatchMissed || caughtPokemonResponse.Status == CatchPokemonResponse.Types.CatchStatus.CatchEscape) ;
         }
-
+        
         private async Task EvolveAllPokemonWithEnoughCandy(IEnumerable<PokemonId> filter = null)
         {
             var pokemonToEvolve = await _inventory.GetPokemonToEvolve(filter);
@@ -184,7 +188,7 @@ namespace PokemonGo.RocketAPI.Logic
             var duplicatePokemons = await _inventory.GetDuplicatePokemonToTransfer(keepPokemonsThatCanEvolve);
 
             foreach (var duplicatePokemon in duplicatePokemons)
-            { 
+            {
                 if (CalculatePokemonPerfection(duplicatePokemon) >= _clientSettings.KeepMinIVPercentage || duplicatePokemon.Cp > _clientSettings.KeepMinCP)
                     continue;
                 

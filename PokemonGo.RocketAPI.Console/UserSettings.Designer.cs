@@ -37,7 +37,7 @@ namespace PokemonGo.RocketAPI.Console {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("username")]
+        [global::System.Configuration.DefaultSettingValueAttribute("username2")]
         public string PtcUsername {
             get {
                 return ((string)(this["PtcUsername"]));
@@ -128,6 +128,18 @@ namespace PokemonGo.RocketAPI.Console {
             }
             set {
                 this["KeepMinCP"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("1000")]
+        public double WalkingSpeedInKilometerPerHour {
+            get {
+                return ((double)(this["WalkingSpeedInKilometerPerHour"]));
+            }
+            set {
+                this["WalkingSpeedInKilometerPerHour"] = value;
             }
         }
     }

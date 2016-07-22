@@ -19,6 +19,7 @@ namespace PokemonGo.RocketAPI.Console
         public double DefaultAltitude => UserSettings.Default.DefaultAltitude;
         public float KeepMinIVPercentage => UserSettings.Default.KeepMinIVPercentage;
         public int KeepMinCP => UserSettings.Default.KeepMinCP;
+        public double WalkingSpeedInKilometerPerHour => UserSettings.Default.WalkingSpeedInKilometerPerHour;
 
         public string GoogleRefreshToken
         {
@@ -79,12 +80,12 @@ namespace PokemonGo.RocketAPI.Console
             }
 
         public ICollection<PokemonId> PokemonsToEvolve
-        {
-            get
             {
+            get
+        {
                 //Type of pokemons to evolve
                 return new[]
-                {
+            {
                     PokemonId.Rattata,
                     PokemonId.Spearow,
                     PokemonId.Ekans,
