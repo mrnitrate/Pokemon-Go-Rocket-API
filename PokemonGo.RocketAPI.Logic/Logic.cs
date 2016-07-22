@@ -62,7 +62,7 @@ namespace PokemonGo.RocketAPI.Logic
             {
                 try
                 {
-                    await EvolveAllPokemonWithEnoughCandy();
+                    await EvolveAllPokemonWithEnoughCandy(_clientSettings.PokemonsToEvolve);
                     await TransferDuplicatePokemon();
                     await RecycleItems();
                     await ExecuteFarmingPokestopsAndPokemons();
@@ -107,8 +107,8 @@ namespace PokemonGo.RocketAPI.Logic
             var mapObjects = await _client.GetMapObjects();
 
             var pokeStops = mapObjects.MapCells.SelectMany(i => i.Forts).Where(i => i.Type == FortType.Checkpoint && i.CooldownCompleteTimestampMs < DateTime.UtcNow.ToUnixTime()).OrderBy(i => LocationUtils.CalculateDistanceInMeters(new Navigation.Location(_client.CurrentLat, _client.CurrentLng), new Navigation.Location(i.Latitude, i.Longitude)));
-            pokeStops = Navigation.generatePath(pokeStops.ToList());
-            foreach (var pokeStop in pokeStops)
+            var pokeStopsList = Navigation.generatePath(pokeStops.ToList());
+            foreach (var pokeStop in pokeStopsList)
             {
                 var distance = Navigation.DistanceBetween2Coordinates(_client.CurrentLat, _client.CurrentLng, pokeStop.Latitude, pokeStop.Longitude);
 
@@ -218,12 +218,13 @@ namespace PokemonGo.RocketAPI.Logic
                     continue;
                 
                 var transfer = await _client.TransferPokemon(duplicatePokemon.Id);
+                var bestPokemonOfType = await _inventory.GetHighestCPofType(duplicatePokemon);
+                Logger.Write($"Transfer {duplicatePokemon.PokemonId} with {duplicatePokemon.Cp} CP (Best: {bestPokemonOfType})", LogLevel.Info);
 
                 _stats.increasePokemonsTransfered();
                 _stats.updateConsoleTitle(_client);
 
                 await RandomHelper.RandomDelay(350, 750);
-                Logger.Write($"Transfer {duplicatePokemon.PokemonId} with {duplicatePokemon.Cp} CP (Best: {bestPokemonOfType})", LogLevel.Info);
             }
         }
 
