@@ -32,12 +32,19 @@ namespace PokemonGo.RocketAPI
 		}
 	}
 
-	public enum LogLevel
-	{
-		None = 0,
-		Error = 1,
-		Warning = 2,
-		Info = 3,
-		Debug = 4
-	}
+    public enum LogLevel
+    {
+        None = 0,
+        Error = 1,
+        Warning = 2,
+        Pokestop = 3,
+        Farming = 4,
+        Recycling = 5,
+        Berry = 6,
+        Caught = 7,
+        Transfer = 8,
+        Evolve = 9,
+        Info = 10,
+        Debug = 11
+    }
 }
