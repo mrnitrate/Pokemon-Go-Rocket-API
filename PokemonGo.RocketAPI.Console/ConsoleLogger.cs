@@ -86,8 +86,6 @@ namespace PokemonGo.RocketAPI.Console
                     System.Console.WriteLine($"[{DateTime.Now.ToString("HH:mm:ss")}] (ERROR) {message}");
                     break;
             }
-            
-            System.Console.WriteLine($"[{ DateTime.Now.ToString("HH:mm:ss")}] { message}");
         }
     }
 }
