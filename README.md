@@ -9,17 +9,19 @@ GitHub issues will be deleted if they are not API related. PR's about improved l
 Example:
 
 ```
-var client = new Client(Settings.DefaultLatitude, Settings.DefaultLongitude);
+var clientSettings = new Settings();
+var client = new Client(_clientSettings);
+await _client.DoGoogleLogin();
+await _client.SetServer();
+var profile = await _client.GetProfile();
+var settings = await _client.GetSettings();
+var mapObjects = await _client.GetMapObjects();
 
-await client.LoginPtc("FeroxRev", "Sekret");
-var serverResponse = await client.GetServer();
-var profile = await client.GetProfile();
-var settings = await client.GetSettings();
-var mapObjects = await client.GetMapObjects();
-var inventory = await client.GetInventory();
-
-await ExecuteFarmingPokestops(client);
-await ExecuteCatchAllNearbyPokemons(client);
+//Logic related methods, which you could also build yourself
+await EvolveAllPokemonWithEnoughCandy();
+await TransferDuplicatePokemon();
+await RecycleItems();
+await ExecuteFarmingPokestopsAndPokemons();
 ```
 
 *Features*
