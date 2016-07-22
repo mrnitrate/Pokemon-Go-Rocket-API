@@ -18,7 +18,17 @@ namespace PokemonGo.RocketAPI.Console
         public double DefaultLongitude => UserSettings.Default.DefaultLongitude;
         public double DefaultAltitude => UserSettings.Default.DefaultAltitude;
 
-        ICollection<KeyValuePair<ItemId, int>> ISettings.itemRecycleFilter
+        public string GoogleRefreshToken
+        {
+            get { return UserSettings.Default.GoogleRefreshToken; }
+            set
+            {
+                UserSettings.Default.GoogleRefreshToken = value;
+                UserSettings.Default.Save();
+            }
+        }
+
+        public ICollection<KeyValuePair<ItemId, int>> ItemRecycleFilter
         {
             get
             {
@@ -64,14 +74,9 @@ namespace PokemonGo.RocketAPI.Console
                      new KeyValuePair<ItemId, int>(ItemId.ItemItemStorageUpgrade, 100),
                 };
             }
-
-            set
-            {
-                throw new NotImplementedException();
-            }
         }
 
-        ICollection<PokemonId> ISettings.pokemonsToEvolve
+        public ICollection<PokemonId> PokemonsToEvolve
         {
             get
             {
@@ -116,21 +121,6 @@ namespace PokemonGo.RocketAPI.Console
                     PokemonId.Kabuto,
                     PokemonId.Dratini
                 };
-            }
-
-            set
-            {
-                throw new NotImplementedException();
-            }
-        }
-
-        public string GoogleRefreshToken
-        {
-            get { return UserSettings.Default.GoogleRefreshToken; }
-            set
-            {
-                UserSettings.Default.GoogleRefreshToken = value;
-                UserSettings.Default.Save();
             }
         }
     }

@@ -14,8 +14,8 @@ namespace PokemonGo.RocketAPI
         string PtcPassword { get; }
         string PtcUsername { get; }
 
-        ICollection<KeyValuePair<AllEnum.ItemId, int>> itemRecycleFilter { get; set; }
+        ICollection<KeyValuePair<AllEnum.ItemId, int>> ItemRecycleFilter { get; }
 
-        ICollection<AllEnum.PokemonId> pokemonsToEvolve { get; set; }
+        ICollection<AllEnum.PokemonId> PokemonsToEvolve { get; }
     }
 }

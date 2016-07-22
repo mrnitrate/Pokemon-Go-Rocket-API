@@ -39,6 +39,8 @@ namespace PokemonGo.RocketAPI.Logic
                     else if (_clientSettings.AuthType == AuthType.Google)
                         await _client.DoGoogleLogin();
 
+                    await _client.SetServer();
+
                     await PostLoginExecute();
                 }
                 catch (AccessTokenExpiredException)
@@ -55,11 +57,8 @@ namespace PokemonGo.RocketAPI.Logic
             {
                 try
                 {
-                    await _client.SetServer();
-                    var inventory = await _client.GetInventory();
-                    var playerStats = inventory.InventoryDelta.InventoryItems.Select(i => i.InventoryItemData).FirstOrDefault(i => i.PlayerStats != null);
-                    
-                    await EvolveAllPokemonWithEnoughCandy(_clientSettings.pokemonsToEvolve);
+                    await DisplayPlayerLevelInTitle();
+                    await EvolveAllPokemonWithEnoughCandy();
                     await TransferDuplicatePokemon();
                     await RecycleItems();
                     await ExecuteFarmingPokestopsAndPokemons();
@@ -93,6 +92,7 @@ namespace PokemonGo.RocketAPI.Logic
                 await action();
         }
 
+        
         private async Task ExecuteFarmingPokestopsAndPokemons()
         {
             var mapObjects = await _client.GetMapObjects();
@@ -107,6 +107,7 @@ namespace PokemonGo.RocketAPI.Logic
                 var fortSearch = await _client.SearchFort(pokeStop.Id, pokeStop.Latitude, pokeStop.Longitude);
                 Logger.Write($"Using Pokestop: {fortInfo.Name} in {Math.Round(distance)}m distance");
                 Logger.Write($"Farmed XP: {fortSearch.ExperienceAwarded}, Gems: { fortSearch.GemsAwarded}, Eggs: {fortSearch.PokemonDataEgg} Items: {StringUtils.GetSummedFriendlyNameOfItemAwardList(fortSearch.ItemsAwarded)}", LogLevel.Info);
+
                 await Task.Delay(1000);
                 await RecycleItems();
                 await ExecuteCatchAllNearbyPokemons();
@@ -167,8 +168,7 @@ namespace PokemonGo.RocketAPI.Logic
                 if (evolvePokemonOutProto.Result == EvolvePokemonOut.Types.EvolvePokemonStatus.PokemonEvolvedSuccess)
                     Logger.Write($"Evolved {pokemon.PokemonId} successfully for {evolvePokemonOutProto.ExpAwarded}xp", LogLevel.Info);
                 else
-                        Logger.Write($"Failed to evolve {pokemon.PokemonId}. EvolvePokemonOutProto.Result was {evolvePokemonOutProto.Result}, stopping evolving {pokemon.PokemonId}", LogLevel.Info);
-                    
+                    Logger.Write($"Failed to evolve {pokemon.PokemonId}. EvolvePokemonOutProto.Result was {evolvePokemonOutProto.Result}, stopping evolving {pokemon.PokemonId}", LogLevel.Info);
 
                 await Task.Delay(3000);
             }
@@ -246,6 +246,19 @@ namespace PokemonGo.RocketAPI.Logic
             var useRaspberry = await _client.UseCaptureItem(encounterId, AllEnum.ItemId.ItemRazzBerry, spawnPointId);
             Logger.Write($"Use Rasperry. Remaining: {berry.Count}", LogLevel.Info);
             await Task.Delay(3000);
+        }
+
+        private async Task DisplayPlayerLevelInTitle()
+        {
+            var playerStats = await _inventory.GetPlayerStats();
+            var playerStat = playerStats.FirstOrDefault();
+            if (playerStat != null)
+            {
+                var message = $"Player level {playerStat.Level:0} - ({(playerStat.Experience - playerStat.PrevLevelXp):0} / {(playerStat.NextLevelXp - playerStat.PrevLevelXp):0})";
+                System.Console.Title = message;
+                Logger.Write(message);
+            }
+            await Task.Delay(5000);
         }
     }
 }
