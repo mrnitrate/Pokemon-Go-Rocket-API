@@ -143,8 +143,6 @@ namespace PokemonGo.RocketAPI.Logic
                 else
                     await Task.Delay((int)distance * 6);
 
-                await _client.UpdatePlayerLocation(RandomHelper.JitterDouble(pokemon.Latitude, 0.0001), RandomHelper.JitterDouble(pokemon.Longitude, 0.0001), _clientSettings.DefaultAltitude);
-
                 var encounter = await _client.EncounterPokemon(pokemon.EncounterId, pokemon.SpawnpointId);
 
                 if (encounter.Status == EncounterResponse.Types.Status.EncounterSuccess)
