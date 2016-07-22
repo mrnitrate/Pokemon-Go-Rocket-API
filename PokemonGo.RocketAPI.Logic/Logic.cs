@@ -137,7 +137,11 @@ namespace PokemonGo.RocketAPI.Logic
                 await _client.UpdatePlayerLocation(pokemon.Latitude, pokemon.Longitude, _clientSettings.DefaultAltitude);
 
                 var encounter = await _client.EncounterPokemon(pokemon.EncounterId, pokemon.SpawnpointId);
-                await CatchEncounter(encounter, pokemon);
+
+                if (encounter.Status == EncounterResponse.Types.Status.EncounterSuccess)
+                    await CatchEncounter(encounter, pokemon);
+                else
+                    Logger.Write($"Encounter problem: {encounter?.Status}");
             }
             await Task.Delay(15000);
         }
