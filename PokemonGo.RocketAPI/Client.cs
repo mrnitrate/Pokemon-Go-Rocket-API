@@ -34,12 +34,16 @@ namespace PokemonGo.RocketAPI
             {
                 var latlngFromFile = File.ReadAllText(Directory.GetCurrentDirectory() + "\\Coords.txt");
                 var latlng = latlngFromFile.Split(':');
-                if (latlng[0].Length != 0 && latlng[1].Length != 0)
+                
+                try
                 {
-                    SetCoordinates(Convert.ToDouble(latlng[0]), Convert.ToDouble(latlng[1]), Settings.DefaultAltitude);
+                    var lat = Convert.ToDouble(latlng[0]);
+                    var lng = Convert.ToDouble(latlng[1]);
+                    SetCoordinates(lat, lng, Settings.DefaultAltitude);
                 }
-                else
+                catch (FormatException)
                 {
+					Logger.Write($"Error in lat:lng format while reading from Coords.txt : {latlng}", LogLevel.Error);
                     SetCoordinates(Settings.DefaultLatitude, Settings.DefaultLongitude, Settings.DefaultAltitude);
                 }
             }
@@ -67,8 +71,17 @@ namespace PokemonGo.RocketAPI
 
         public void SaveLatLng(double lat, double lng)
         {
-            string latlng = lat.ToString() + ":" + lng.ToString();
-            File.WriteAllText(Directory.GetCurrentDirectory() + "\\Coords.txt", latlng);
+			if (!Double.IsNaN(lat) && !Double.IsNaN(lng))
+			{  
+                string latlng = lat.ToString() + ":" + lng.ToString();
+                File.WriteAllText(Directory.GetCurrentDirectory() + "\\Coords.txt", latlng);   
+            }
+            else 
+            {
+				Logger.Write($"Error in lat long format while saving to Coords.txt : {lat},{lng}", LogLevel.Error);
+            }
+            
+            
         }
 
         private void SetCoordinates(double lat, double lng, double altitude)
