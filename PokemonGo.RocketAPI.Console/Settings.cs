@@ -126,5 +126,23 @@ namespace PokemonGo.RocketAPI.Console
                 };
             }
         }
+
+        public ICollection<PokemonId> PokemonsNotToTransfer
+        {
+            get
+            {
+                //Type of pokemons not to transfer
+                return new[]
+            {
+                    PokemonId.Dragonite,
+                    PokemonId.Charizard,
+                    PokemonId.Zapdos,
+                    PokemonId.Snorlax,
+                    PokemonId.Alakhazam,
+                    PokemonId.Mew,
+                    PokemonId.Mewtwo
+                };
+            }
+        }
     }
 }

@@ -20,5 +20,7 @@ namespace PokemonGo.RocketAPI
         ICollection<KeyValuePair<AllEnum.ItemId, int>> ItemRecycleFilter { get; }
 
         ICollection<AllEnum.PokemonId> PokemonsToEvolve { get; }
+
+        ICollection<AllEnum.PokemonId> PokemonsNotToTransfer { get; }
     }
 }
