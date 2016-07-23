@@ -4,8 +4,10 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Text;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 using Newtonsoft.Json.Linq;
 using PokemonGo.RocketAPI.Enums;
 using PokemonGo.RocketAPI.Helpers;
@@ -39,6 +41,20 @@ namespace PokemonGo.RocketAPI.Login
                 new KeyValuePair<string, string>("scope", "openid email https://www.googleapis.com/auth/userinfo.email"));
 
             Logger.Write($"Please visit {deviceCode.verification_url} and enter {deviceCode.user_code}", LogLevel.None);
+            await Task.Delay(2000);
+            try
+            {
+                Process.Start(@"http://www.google.com/device");
+                var thread = new Thread(() => Clipboard.SetText(deviceCode.user_code)); //Copy device code
+                thread.SetApartmentState(ApartmentState.STA); //Set the thread to STA
+                thread.Start();
+                thread.Join();
+            }
+            catch (Exception)
+            {
+                Logger.Write("Couldnt copy to clipboard, do it manually", LogLevel.Error);
+                Logger.Write($"Goto: http://www.google.com/device & enter {deviceCode.user_code}", LogLevel.Error);
+            }
             return deviceCode;
         }
 
