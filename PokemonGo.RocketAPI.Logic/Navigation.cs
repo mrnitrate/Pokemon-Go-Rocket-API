@@ -28,7 +28,7 @@ namespace PokemonGo.RocketAPI.Logic
             Logger.Write($"Distance to target location: {distanceToTarget:0.##} meters. Will take {distanceToTarget/speedInMetersPerSecond:0.##} seconds!", LogLevel.Info);
 
             double nextWaypointBearing = LocationUtils.DegreeBearing(sourceLocation, targetLocation);
-            double nextWaypointDistance = speedInMetersPerSecond;
+            double nextWaypointDistance = speedInMetersPerSecond/16;
             Location waypoint = LocationUtils.CreateWaypoint(sourceLocation, nextWaypointDistance, nextWaypointBearing);
 
             //Initial walking
@@ -59,7 +59,7 @@ namespace PokemonGo.RocketAPI.Logic
                     Logger.Write($"Distance to target location: {LocationUtils.CalculateDistanceInMeters(sourceLocation, targetLocation):0.##} meters.", LogLevel.Debug);
                 }
 
-                nextWaypointDistance = Math.Min(currentDistanceToTarget, millisecondsUntilGetUpdatePlayerLocationResponse / 1000 * speedInMetersPerSecond);
+                nextWaypointDistance = Math.Max(currentDistanceToTarget/16, millisecondsUntilGetUpdatePlayerLocationResponse / 1000 * speedInMetersPerSecond);
                 nextWaypointBearing = LocationUtils.DegreeBearing(sourceLocation, targetLocation);
                 waypoint = LocationUtils.CreateWaypoint(sourceLocation, nextWaypointDistance, nextWaypointBearing);
 
@@ -69,7 +69,7 @@ namespace PokemonGo.RocketAPI.Logic
                    {
                     await functionExecutedWhileWalking(); 
                    }
-                await Task.Delay(Math.Min((int)(distanceToTarget / speedInMetersPerSecond * 1000), 3000));
+                await Task.Delay(Math.Min((int)(distanceToTarget / speedInMetersPerSecond * 1000), 1000));
             } while (LocationUtils.CalculateDistanceInMeters(sourceLocation, targetLocation) >= 30);
 
             return result;
