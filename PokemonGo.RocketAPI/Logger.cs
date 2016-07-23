@@ -1,5 +1,4 @@
-﻿using PokemonGo.RocketAPI.Logging;
-﻿#region
+﻿﻿#region
 
 using System;
 using System.IO;
