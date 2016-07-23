@@ -142,9 +142,9 @@ namespace PokemonGo.RocketAPI.Logic
             {
                 var distance = Navigation.DistanceBetween2Coordinates(_client.CurrentLat, _client.CurrentLng, pokemon.Latitude, pokemon.Longitude);
                 if (distance > 100)
-                    await Task.Delay((int)distance * 100);
+                    await Task.Delay((int)distance * 10);
                 else
-                    await Task.Delay((int)distance * 6);
+                    await Task.Delay((int)distance * 2);
 
                 var encounter = await _client.EncounterPokemon(pokemon.EncounterId, pokemon.SpawnpointId);
 
@@ -153,7 +153,7 @@ namespace PokemonGo.RocketAPI.Logic
                 else
                     Logger.Write($"Encounter problem: {encounter?.Status}");
             }
-            await RandomHelper.RandomDelay(7000,12000);
+            //await RandomHelper.RandomDelay(1000,3000);
         }
 
         private async Task CatchEncounter(EncounterResponse encounter, MapPokemon pokemon)
@@ -176,8 +176,8 @@ namespace PokemonGo.RocketAPI.Logic
 
                 Logger.Write(
                    caughtPokemonResponse.Status == CatchPokemonResponse.Types.CatchStatus.CatchSuccess
-                       ? $"{pokemon.PokemonId} ({encounter?.WildPokemon?.PokemonData?.Cp} CP) ({Math.Round(CalculatePokemonPerfection(encounter?.WildPokemon?.PokemonData)).ToString("0.00")}% perfection) | Chance: {encounter?.CaptureProbability.CaptureProbability_.First()} | {Math.Round(distance)}m distance | with {pokeball} "
-                       : $"{pokemon.PokemonId} ({encounter?.WildPokemon?.PokemonData?.Cp} CP) Chance: {Math.Round(Convert.ToDouble(encounter?.CaptureProbability?.CaptureProbability_.First()))} | {Math.Round(distance)}m distance {caughtPokemonResponse.Status} | with {pokeball}",
+                       ? $"{pokemon.PokemonId} ({encounter?.WildPokemon?.PokemonData?.Cp} CP) ({Math.Round(CalculatePokemonPerfection(encounter?.WildPokemon?.PokemonData)).ToString("00")}% perfection) | Chance: {Math.Round(Convert.ToDouble(encounter?.CaptureProbability?.CaptureProbability_.First())*100).ToString("00")}% | {Math.Round(distance)}m distance | with {pokeball} "
+                       : $"{pokemon.PokemonId} ({encounter?.WildPokemon?.PokemonData?.Cp} CP) Chance: {Math.Round(Convert.ToDouble(encounter?.CaptureProbability?.CaptureProbability_.First())*100).ToString("00")}% | {Math.Round(distance)}m distance {caughtPokemonResponse.Status} | with {pokeball}",
                    LogLevel.Caught);
                 if (caughtPokemonResponse.Status == CatchPokemonResponse.Types.CatchStatus.CatchSuccess)
                 {
@@ -188,7 +188,7 @@ namespace PokemonGo.RocketAPI.Logic
                     _stats.getStardust(profile.Profile.Currency.ToArray()[1].Amount);
                 }
 
-                await RandomHelper.RandomDelay(1700, 2200);
+                await RandomHelper.RandomDelay(700, 1200);
             }
             while (caughtPokemonResponse.Status == CatchPokemonResponse.Types.CatchStatus.CatchMissed || caughtPokemonResponse.Status == CatchPokemonResponse.Types.CatchStatus.CatchEscape) ;
         }
@@ -211,7 +211,7 @@ namespace PokemonGo.RocketAPI.Logic
                     Logger.Write(
                         $"Failed {pokemon.PokemonId}. EvolvePokemonOutProto.Result was {evolvePokemonOutProto.Result}, stopping evolving {pokemon.PokemonId}",
                         LogLevel.Evolve);
-                await RandomHelper.RandomDelay(2500, 3500);
+                await RandomHelper.RandomDelay(1500, 2500);
             }
         }
 
@@ -298,7 +298,7 @@ namespace PokemonGo.RocketAPI.Logic
             
             var useRaspberry = await _client.UseCaptureItem(encounterId, AllEnum.ItemId.ItemRazzBerry, spawnPointId);
             Logger.Write($"Used, remaining: {berry.Count}", LogLevel.Berry);
-            await RandomHelper.RandomDelay(1000, 2500);
+            await RandomHelper.RandomDelay(300, 1500);
         }
     }
 }
